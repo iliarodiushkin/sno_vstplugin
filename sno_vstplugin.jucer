@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="dQmofk" name="sno_vstplugin" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="SNO VST">
   <MAINGROUP id="UPC54t" name="sno_vstplugin">
     <GROUP id="{06C02E8B-702F-E153-C124-DA93C10DFE02}" name="Source">
       <FILE id="lZPwzC" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -17,7 +17,7 @@
   <EXPORTFORMATS>
     <VS2022 targetFolder="Builds/VisualStudio2022">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="sno_vstplugin"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="sno_vstplugin" enablePluginBinaryCopyStep="1"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="sno_vstplugin"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
