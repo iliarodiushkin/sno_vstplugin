@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="dQmofk" name="sno_vstplugin" projectType="audioplug" useAppConfig="0"
+<JUCERPROJECT id="dQmofk" name="SNOplugin" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="SNO VST">
-  <MAINGROUP id="UPC54t" name="sno_vstplugin">
+  <MAINGROUP id="UPC54t" name="SNOplugin">
     <GROUP id="{06C02E8B-702F-E153-C124-DA93C10DFE02}" name="Source">
       <FILE id="lZPwzC" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
