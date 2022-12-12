@@ -9,7 +9,9 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <ProcessorBase.h>
+#include "ProcessorBase.h"
+#include "GainProcessor.h"
+
 
 
 
