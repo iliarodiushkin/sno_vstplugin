@@ -11,17 +11,27 @@
 
 //==============================================================================
 Sno_vstpluginAudioProcessor::Sno_vstpluginAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
-#endif
+    : AudioProcessor(BusesProperties().withInput("Input", juce::AudioChannelSet::stereo(), true)
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+    mainProcessor(new juce::AudioProcessorGraph()),
+    //! [constructor]
+    muteInput(new juce::AudioParameterBool("mute", "Mute Input", true)),
+    processorSlot1(new juce::AudioParameterChoice("slot1", "Slot 1", processorChoices, 0)),
+    processorSlot2(new juce::AudioParameterChoice("slot2", "Slot 2", processorChoices, 0)),
+    processorSlot3(new juce::AudioParameterChoice("slot3", "Slot 3", processorChoices, 0)),
+    bypassSlot1(new juce::AudioParameterBool("bypass1", "Bypass 1", false)),
+    bypassSlot2(new juce::AudioParameterBool("bypass2", "Bypass 2", false)),
+    bypassSlot3(new juce::AudioParameterBool("bypass3", "Bypass 3", false))
 {
+    addParameter(muteInput);
+
+    addParameter(processorSlot1);
+    addParameter(processorSlot2);
+    addParameter(processorSlot3);
+
+    addParameter(bypassSlot1);
+    addParameter(bypassSlot2);
+    addParameter(bypassSlot3);
 }
 
 Sno_vstpluginAudioProcessor::~Sno_vstpluginAudioProcessor()
@@ -29,10 +39,10 @@ Sno_vstpluginAudioProcessor::~Sno_vstpluginAudioProcessor()
 }
 
 //==============================================================================
-const juce::String Sno_vstpluginAudioProcessor::getName() const
-{
-    return JucePlugin_Name;
-}
+//const juce::String Sno_vstpluginAudioProcessor::getName() const
+//{
+//    return JucePlugin_Name;
+//}
 
 bool Sno_vstpluginAudioProcessor::acceptsMidi() const
 {
@@ -93,69 +103,43 @@ void Sno_vstpluginAudioProcessor::changeProgramName (int index, const juce::Stri
 //==============================================================================
 void Sno_vstpluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    mainProcessor->setPlayConfigDetails(getMainBusNumInputChannels(),
+        getMainBusNumOutputChannels(),
+        sampleRate, samplesPerBlock);
+
+    mainProcessor->prepareToPlay(sampleRate, samplesPerBlock);
+
+    initialiseGraph();
 }
 
 void Sno_vstpluginAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    mainProcessor->releaseResources();
 }
 
-#ifndef JucePlugin_PreferredChannelConfigurations
 bool Sno_vstpluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
-    juce::ignoreUnused (layouts);
-    return true;
-  #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
+    if (layouts.getMainInputChannelSet() == juce::AudioChannelSet::disabled()
+        || layouts.getMainOutputChannelSet() == juce::AudioChannelSet::disabled())
+        return false;
+
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+        && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-        return false;
-   #endif
-
-    return true;
-  #endif
+    return layouts.getMainInputChannelSet() == layouts.getMainOutputChannelSet();
 }
-#endif
 
 void Sno_vstpluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
+    for (int i = getTotalNumInputChannels(); i < getTotalNumOutputChannels(); ++i)
+        buffer.clear(i, 0, buffer.getNumSamples());
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+    updateGraph();
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-    }
+    mainProcessor->processBlock(buffer, midiMessages);
 }
 
 //==============================================================================
@@ -166,7 +150,8 @@ bool Sno_vstpluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* Sno_vstpluginAudioProcessor::createEditor()
 {
-    return new Sno_vstpluginAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
+    //return new Sno_vstpluginAudioProcessorEditor (*this);
 }
 
 //==============================================================================
@@ -189,3 +174,4 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new Sno_vstpluginAudioProcessor();
 }
+
