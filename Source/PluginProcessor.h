@@ -9,8 +9,11 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "ProcessorBase.h"
 #include "GainProcessor.h"
+#include "HighPassFilterProcessor.h"
+//#include "HighPassFilterProcessor.h"
+
+
 
 using AudioGraphIOProcessor = juce::AudioProcessorGraph::AudioGraphIOProcessor;
 using Node = juce::AudioProcessorGraph::Node;
@@ -135,19 +138,31 @@ private:
                 slots.set(i, mainProcessor->addNode(std::make_unique<GainProcessor>()));
                 hasChanged = true;
             }
-            //else if (choice->getIndex() == 3)       // [4]
-            //{
-            //    if (slot != nullptr)
-            //    {
-            //        if (slot->getProcessor()->getName() == "Filter")
-            //            continue;
+            else if (choice->getIndex() == 2)
+            {
+                if (slot != nullptr)
+                {
+                    if (slot->getProcessor()->getName() == "HighPassFilter")
+                        continue;
 
-            //        mainProcessor->removeNode(slot.get());
-            //    }
+                    mainProcessor->removeNode(slot.get());
+                }
+                slots.set(i, mainProcessor->addNode(std::make_unique<HighPassFilterProcessor>()));
+                hasChanged = true;
+            }
+            /*else if (choice->getIndex() == 2)       // [4]
+            {
+                if (slot != nullptr)
+                {
+                    if (slot->getProcessor()->getName() == "Filter")
+                        continue;
 
-            //    slots.set(i, mainProcessor->addNode(std::make_unique<FilterProcessor>()));
-            //    hasChanged = true;
-            //}
+                    mainProcessor->removeNode(slot.get());
+                }
+
+                slots.set(i, mainProcessor->addNode(std::make_unique<FilterProcessor>()));
+                hasChanged = true;
+            }*/
         }
         //! [updateGraph loop]
 
@@ -237,7 +252,7 @@ private:
 
         //==============================================================================
     //! [members]
-    juce::StringArray processorChoices{ "Empty", "Gain"};
+    juce::StringArray processorChoices{ "Empty", "Gain", "Filter"};
 
     //! [graph member]
     std::unique_ptr<juce::AudioProcessorGraph> mainProcessor;

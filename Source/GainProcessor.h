@@ -9,7 +9,7 @@ public:
 
     GainProcessor()
     {
-        gain.setGainDecibels(-24.0f);
+        gain.setGainDecibels(12.0f);
     }
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override
