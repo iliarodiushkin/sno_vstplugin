@@ -11,7 +11,7 @@
 #include <JuceHeader.h>
 #include "GainProcessor.h"
 #include "HighPassFilterProcessor.h"
-//#include "HighPassFilterProcessor.h"
+#include "CompressorProcessor.h"
 
 
 
@@ -64,6 +64,8 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    juce::StringArray processorChoices{ "Empty", "Gain", "HighPassFilter", "Compressor" };
+
     void initialiseGraph()
     {
         mainProcessor->clear();
@@ -150,19 +152,19 @@ private:
                 slots.set(i, mainProcessor->addNode(std::make_unique<HighPassFilterProcessor>()));
                 hasChanged = true;
             }
-            /*else if (choice->getIndex() == 2)       // [4]
+            else if (choice->getIndex() == 3)       // [4]
             {
                 if (slot != nullptr)
                 {
-                    if (slot->getProcessor()->getName() == "Filter")
+                    if (slot->getProcessor()->getName() == "Compressor")
                         continue;
 
                     mainProcessor->removeNode(slot.get());
                 }
 
-                slots.set(i, mainProcessor->addNode(std::make_unique<FilterProcessor>()));
+                slots.set(i, mainProcessor->addNode(std::make_unique<CompressorProcessor>()));
                 hasChanged = true;
-            }*/
+            }
         }
         //! [updateGraph loop]
 
@@ -252,7 +254,6 @@ private:
 
         //==============================================================================
     //! [members]
-    juce::StringArray processorChoices{ "Empty", "Gain", "Filter"};
 
     //! [graph member]
     std::unique_ptr<juce::AudioProcessorGraph> mainProcessor;
