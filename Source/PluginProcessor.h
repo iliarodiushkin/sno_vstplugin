@@ -12,6 +12,7 @@
 #include "GainProcessor.h"
 #include "HighPassFilterProcessor.h"
 #include "CompressorProcessor.h"
+#include "DistortionProcessor.h"
 
 
 
@@ -64,7 +65,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
-    juce::StringArray processorChoices{ "Empty", "Gain", "HighPassFilter", "Compressor" };
+    juce::StringArray processorChoices{ "Empty", "Gain", "HighPassFilter", "Compressor", "Distortion"};
 
     void initialiseGraph()
     {
@@ -87,7 +88,7 @@ private:
 
         juce::Array<juce::AudioParameterChoice*> choices{ processorSlot1,
                                                            processorSlot2,
-                                                           processorSlot3 };
+                                                           processorSlot3};
 
         juce::Array<juce::AudioParameterBool*> bypasses{ bypassSlot1,
                                                           bypassSlot2,
@@ -163,6 +164,19 @@ private:
                 }
 
                 slots.set(i, mainProcessor->addNode(std::make_unique<CompressorProcessor>()));
+                hasChanged = true;
+            }
+            else if (choice->getIndex() == 4)      
+            {
+                if (slot != nullptr)
+                {
+                    if (slot->getProcessor()->getName() == "Distortion")
+                        continue;
+
+                    mainProcessor->removeNode(slot.get());
+                }
+
+                slots.set(i, mainProcessor->addNode(std::make_unique<DistortionProcessor>()));
                 hasChanged = true;
             }
         }
